@@ -1,0 +1,47 @@
+[
+  {
+    "logging": {
+      "accountName": "Logging Account",
+      "email": "",
+      "iamRoleName": "OrganizationAccountAccessRole",
+      "IamUserAccessToBilling": "ALLOW",
+      "cloudformationTemplate": "logging.template",
+      "org_unit": ""
+    },
+    "global_services": {
+      "accountName": "Global Services Account",
+      "email": "",
+      "iamRoleName": "OrganizationAccountAccessRole",
+      "IamUserAccessToBilling": "ALLOW",
+      "cloudformationTemplate": "services.template"
+    },
+    "iam_master": {
+      "accountName": "IAM Master Account",
+      "email": "",
+      "iamRoleName": "OrganizationAccountAccessRole",
+      "IamUserAccessToBilling": "ALLOW",
+      "cloudformationTemplate": "iam-master.template"
+    },
+    "iam_user": {
+      "accountName": "IAM User Account",
+      "email": "",
+      "iamRoleName": "OrganizationAccountAccessRole",
+      "IamUserAccessToBilling": "ALLOW",
+      "cloudformationTemplate": "iam-user.template"
+    },
+    "security": {
+      "accountName": "Security Account",
+      "email": "",
+      "iamRoleName": "OrganizationAccountAccessRole",
+      "IamUserAccessToBilling": "ALLOW",
+      "cloudformationTemplate": "security.template"
+    },
+    "audit": {
+      "accountName": "Audit Account",
+      "email": "",
+      "iamRoleName": "OrganizationAccountAccessRole",
+      "IamUserAccessToBilling": "ALLOW",
+      "cloudformationTemplate": "audit.template"
+    }
+  }
+]

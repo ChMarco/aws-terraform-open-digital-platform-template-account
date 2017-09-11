@@ -1,0 +1,61 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "AWSCloudTrailCreateLogStream",
+      "Effect": "Allow",
+      "Action": [
+        "organizations:DescribeAccount",
+        "organizations:DescribeOrganizationalUnit",
+        "organizations:DescribeAccount",
+        "organizations:DescribeCreateAccountStatus",
+        "organizations:DescribeOrganization",
+        "organizations:ListPolicies"
+      ],
+      "Resource": [
+        "*"
+      ]
+    },
+    {
+      "Sid": "AWSDenyOrgActions",
+      "Effect": "Deny",
+      "Action": [
+        "organizations:AcceptHandshake",
+        "organizations:AttachPolicy",
+        "organizations:CancelHandshake",
+        "organizations:CreateAccount",
+        "organizations:CreateOrganization",
+        "organizations:CreateOrganizationalUnit",
+        "organizations:CreatePolicy",
+        "organizations:DeclineHandshake",
+        "organizations:DeleteOrganizationalUnit",
+        "organizations:DeletePolicy",
+        "organizations:DescribeHandshake",
+        "organizations:DetachPolicy",
+        "organizations:DisablePolicyType",
+        "organizations:EnablePolicyType",
+        "organizations:InviteAccountToOrganization",
+        "organizations:LeaveOrganization",
+        "organizations:ListAccounts",
+        "organizations:ListAccountsForParent",
+        "organizations:ListChildren",
+        "organizations:ListCreateAccountStatus",
+        "organizations:ListHandshakesForAccount",
+        "organizations:ListHandshakesForOrganization",
+        "organizations:ListOrganizationalUnitsForParent",
+        "organizations:ListParents",
+        "organizations:ListPoliciesForTarget",
+        "organizations:ListRoots",
+        "organizations:ListTargetsForPolicy",
+        "organizations:MoveAccount",
+        "organizations:RemoveAccountFromOrganization",
+        "organizations:UpdateOrganizationalUnit",
+        "organizations:UpdatePolicy"
+      ],
+      "Resource": [
+        "*"
+      ]
+    }
+  ]
+}
+
