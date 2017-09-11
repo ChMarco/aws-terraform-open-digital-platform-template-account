@@ -1,0 +1,17 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "AWSDenyOrgRoleModifications",
+      "Effect": "Deny",
+      "Action": [
+        "iam:*"
+      ],
+      "Resource": [
+        "arn:aws:iam::%s:role/OrganizationAccountAccessRole",
+        "arn:aws:iam::%s:role/OrganizationCloudTrailLogs"
+      ]
+    }
+  ]
+}
+
