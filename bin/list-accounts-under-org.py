@@ -3,6 +3,7 @@
 import json
 import pprint
 import boto3
+from utils import get_root_id
 
 
 def list_accounts():
@@ -12,12 +13,10 @@ def list_accounts():
     pretty_printer = pprint.PrettyPrinter(indent=4)
 
     accounts = list()
-    response = org_client.list_accounts()
 
     # get Id of root account
     full_account_list = org_client.list_accounts()['Accounts']
-    root_account = org_client.list_roots()['Roots'][0]['Arn']
-    root_account_ID = root_account.split(':')[4]
+    root_account_ID = get_root_id(org_client)
 
     # create local hash of account names and IDs. Do not include root account
     for account in full_account_list:
