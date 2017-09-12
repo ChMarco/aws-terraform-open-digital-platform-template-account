@@ -8,6 +8,8 @@ import sys
 import boto3
 import botocore
 import time
+from utils import get_template
+
 
 class ACCOUNT_TYPE(Enum):
     audit = 'hello'
@@ -23,17 +25,6 @@ def getAccount_Type(account_name):
     elif(account_name == "Audit Account"):
         return ACCOUNT_TYPE.audit
 
-
-def get_template(template_file):
-
-    '''
-        Read a template file and return the contents
-    '''
-
-    print("Reading resources from " + template_file)
-    f = open(template_file, "r")
-    cf_template = f.read()
-    return cf_template
 
 def configure_admin_user(session, account_id):
     """
