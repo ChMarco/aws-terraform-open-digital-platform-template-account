@@ -8,15 +8,15 @@ import boto3
 def list_accounts():
 
     #create the client
-    client = boto3.client('organizations')
+    org_client = boto3.client('organizations')
     pretty_printer = pprint.PrettyPrinter(indent=4)
 
     accounts = list()
-    response = client.list_accounts()
+    response = org_client.list_accounts()
 
     # get Id of root account
-    full_account_list = client.list_accounts()['Accounts']
-    root_account = client.list_roots()['Roots'][0]['Arn']
+    full_account_list = org_client.list_accounts()['Accounts']
+    root_account = org_client.list_roots()['Roots'][0]['Arn']
     root_account_ID = root_account.split(':')[4]
 
     # create local hash of account names and IDs. Do not include root account
