@@ -3,7 +3,6 @@
 import boto3
 from utils import get_template
 
-
 def validate_cloudformtion_template(cf_template_json):
     #create the client
     cf_client = boto3.client('cloudformation')

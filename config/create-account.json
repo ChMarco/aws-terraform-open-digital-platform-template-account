@@ -2,7 +2,7 @@
   {
     "logging": {
       "accountName": "Logging Account",
-      "email": "",
+      "email": "sion.smith+logging@gmail.com",
       "iamRoleName": "OrganizationAccountAccessRole",
       "IamUserAccessToBilling": "ALLOW",
       "cloudformationTemplate": "logging.template",
@@ -10,35 +10,42 @@
     },
     "global_services": {
       "accountName": "Global Services Account",
-      "email": "",
+      "email": "sion.smith+global@gmail.com",
       "iamRoleName": "OrganizationAccountAccessRole",
       "IamUserAccessToBilling": "ALLOW",
       "cloudformationTemplate": "services.template"
     },
+    "management": {
+      "accountName": "Management Account",
+      "email": "sion.smith+management@gmail.com",
+      "iamRoleName": "OrganizationAccountAccessRole",
+      "IamUserAccessToBilling": "ALLOW",
+      "cloudformationTemplate": "management.template"
+    },
     "iam_master": {
       "accountName": "IAM Master Account",
-      "email": "",
+      "email": "sion.smith+iam_master@gmail.com",
       "iamRoleName": "OrganizationAccountAccessRole",
       "IamUserAccessToBilling": "ALLOW",
       "cloudformationTemplate": "iam-master.template"
     },
     "iam_user": {
       "accountName": "IAM User Account",
-      "email": "",
+      "email": "sion.smith+iam_user@gmail.com",
       "iamRoleName": "OrganizationAccountAccessRole",
       "IamUserAccessToBilling": "ALLOW",
       "cloudformationTemplate": "iam-user.template"
     },
     "security": {
       "accountName": "Security Account",
-      "email": "",
+      "email": "sion.smith+security@gmail.com",
       "iamRoleName": "OrganizationAccountAccessRole",
       "IamUserAccessToBilling": "ALLOW",
       "cloudformationTemplate": "security.template"
     },
     "audit": {
       "accountName": "Audit Account",
-      "email": "",
+      "email": "sion.smith+audit@gmail.com",
       "iamRoleName": "OrganizationAccountAccessRole",
       "IamUserAccessToBilling": "ALLOW",
       "cloudformationTemplate": "audit.template"
