@@ -16,6 +16,19 @@ def enable_policy_type_in_root(org_client, root_id):
     if (p_type['Type'] == 'SERVICE_CONTROL_POLICY' and p_type['Status'] != 'ENABLED'):
         org_client.enable_policy_type(RootId=root_id, PolicyType='SERVICE_CONTROL_POLICY')
 
+def get_parent_id(org_client, account_id):
+    """
+    Query deployed AWS organanization for 'account_id. Return the 'Id' of
+    the parent OrganizationalUnit or 'None'.
+    """
+    parents = org_client.list_parents(ChildId=account_id)['Parents']
+    try:
+        len(parents) == 1
+        return parents[0]['Id']
+    except:
+        raise RuntimeError("API Error: account '%s' has more than one parent: "
+                % (account_id, parents))
+
 def validate_accounts_unique_in_org(log, root_spec):
     """
     Ensure accounts are unique across org
@@ -93,8 +106,95 @@ def manage_policies(org_client, log, deployed, org_spec):
                         Content=policy_doc,
                         Description=p_spec['Description'],)
 
+def manage_ou(org_client, log, deployed, org_spec, ou_spec_list, parent_name):
+    """
+    Recursive function to manage OrganizationalUnits in the AWS
+    Organization.
+    """
+    for ou_spec in ou_spec_list:
+        # ou exists
+        ou = lookup(deployed['ou'], 'Name', ou_spec['Name'])
+        if ou:
+            # check for child_ou. recurse before other tasks.
+            if 'Child_OU' in ou_spec:
+                manage_ou(org_client, log, deployed, org_spec, ou_spec['Child_OU'], ou_spec['Name'])
+            # check if ou 'absent'
+            if ensure_absent(ou_spec):
+                log.info("Deleting OU %s" % ou_spec['Name'])
+                # error if ou contains anything
+                error_flag = False
+                for key in ['Accounts', 'SC_Policies', 'Child_OU']:
+                    if key in ou and ou[key]:
+                        log.error("Can not delete OU '%s'. deployed '%s' exists." % (ou_spec['Name'], key))
+                        error_flag = True
+                if error_flag:
+                    continue
+                else:
+                    org_client.delete_organizational_unit(OrganizationalUnitId=ou['Id'])
+            # manage account and sc_policy placement in OU
+            else:
+                manage_policy_attachments(org_client, log, deployed, org_spec, ou_spec, ou['Id'])
+                manage_account_moves(org_client, log, deployed, ou_spec, ou['Id'])
+        # create new OU
+        elif not ensure_absent(ou_spec):
+            log.info("Creating new OU '%s' under parent '%s'" % (ou_spec['Name'], parent_name))
+            new_ou = org_client.create_organizational_unit(ParentId=lookup(deployed['ou'],'Name',parent_name,'Id'),
+                    Name=ou_spec['Name'])['OrganizationalUnit']
+            # account and sc_policy placement
+            manage_policy_attachments(org_client, log, deployed, org_spec, ou_spec, new_ou['Id'])
+            manage_account_moves(org_client, log, deployed, ou_spec, new_ou['Id'])
+            # recurse if child OU
+            if ('Child_OU' in ou_spec and isinstance(new_ou, dict) and 'Id' in new_ou):
+                manage_ou(org_client, log, deployed, org_spec, ou_spec['Child_OU'], new_ou['Name'])
+
+def manage_account_moves(org_client, log, deployed, ou_spec, dest_parent_id):
+    """
+    Alter deployed AWS Organization.  Ensure accounts are contained
+    by designated OrganizationalUnits based on OU specification.
+    """
+    if 'Accounts' in ou_spec and ou_spec['Accounts']:
+        for account in ou_spec['Accounts']:
+            account_id = lookup(deployed['accounts'], 'Name', account, 'Id')
+            if not account_id:
+                log.warn("Account '%s' not yet in Organization" % account)
+            else:
+                source_parent_id = get_parent_id(org_client, account_id)
+                if dest_parent_id != source_parent_id:
+                    log.info("Moving account '%s' to OU '%s'" % (account, ou_spec['Name']))
+                    org_client.move_account(AccountId=account_id, SourceParentId=source_parent_id,
+                                DestinationParentId=dest_parent_id)
+
+def manage_policy_attachments(org_client, log, deployed, org_spec, ou_spec, ou_id):
+    """
+    Attach or detach specified Service Control Policy to a deployed
+    OrganizatinalUnit.  Do not detach the default policy ever.
+    """
+    # create lists policies_to_attach and policies_to_detach
+    attached_policy_list = list_policies_in_ou(org_client, ou_id)
+    if 'SC_Policies' in ou_spec and isinstance(ou_spec['SC_Policies'], list):
+        spec_policy_list = ou_spec['SC_Policies']
+    else:
+        spec_policy_list = []
+    policies_to_attach = [p for p in spec_policy_list
+            if p not in attached_policy_list]
+    policies_to_detach = [p for p in attached_policy_list
+            if p not in spec_policy_list
+            and p != org_spec['default_policy']]
+    # attach policies
+    for policy_name in policies_to_attach:
+        if not lookup(deployed['policies'],'Name',policy_name):
+            raise RuntimeError("spec-file: ou_spec: policy '%s' not defined" %
+                    policy_name)
+        if not ensure_absent(ou_spec):
+            log.info("Attaching policy '%s' to OU '%s'" % (policy_name, ou_spec['Name']))
+            org_client.attach_policy(PolicyId=lookup(deployed['policies'], 'Name', policy_name, 'Id'), TargetId=ou_id)
+    # detach policies
+    for policy_name in policies_to_detach:
+        log.info("Detaching policy '%s' from OU '%s'" % (policy_name, ou_spec['Name']))
+        org_client.detach_policy(PolicyId=lookup(deployed['policies'], 'Name', policy_name, 'Id'), TargetId=ou_id)
+
 def main():
-    log = get_logger('--boto-log')
+    log = get_logger()
 
     #create the client
     org_client = boto3.client('organizations')
@@ -133,7 +233,9 @@ def main():
     # rescan deployed policies
     deployed['policies'] = get_deployed_policies(org_client)
 
-
+    ######################## OU CRUD ########################
+    #########################################################
+    manage_ou(org_client, log, deployed, org_spec, org_spec['organizational_units'], 'root')
 
 if __name__ == "__main__":
     main()

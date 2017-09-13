@@ -118,31 +118,23 @@ def get_deployed_ou(org_client, root_id):
     build_deployed_ou_table(org_client, 'root', root_id, deployed_ou)
     return deployed_ou
 
-def get_logger(args):
+def get_logger():
     """
-    Setup logging.basicConfig from args.
+    Setup basic logging.
     Return logging.Logger object.
     """
     # log level
-    log_level = logging.CRITICAL
-    # if args['--verbose'] or args['report'] or args['--boto-log']:
-    #     log_level = logging.INFO
-    # if args['--debug']:
-    #     log_level = logging.DEBUG
-    # log format
-    log_format = '%(name)s: %(levelname)-9s%(message)s'
-    # if args['report']:
-    #     log_format = '%(message)s'
-    # if args['--debug']:
+    log_level = logging.INFO
     log_format = '%(name)s: %(levelname)-9s%(funcName)s():  %(message)s'
-    # if (not args['--exec'] and not args['report']):
-    #     log_format = '[dryrun] %s' % log_format
-    # if not args['--boto-log']:
-    logging.getLogger('botocore').propagate = False
-    logging.getLogger('boto3').propagate = False
-    logging.basicConfig(format=log_format, level=log_level)
-    log = logging.getLogger(__name__)
-    return log
+
+    logFormatter = logging.Formatter(log_format)
+    rootLogger = logging.getLogger()
+    rootLogger.setLevel(log_level)
+    consoleHandler = logging.StreamHandler()
+    consoleHandler.setFormatter(logFormatter)
+    rootLogger.addHandler(consoleHandler)
+
+    return rootLogger
 
 def validate_spec(log, validation_patterns, pattern_name, spec):
     """
@@ -237,6 +229,7 @@ def lookup(dlist, lkey, lvalue, rkey=None):
         return None
     return items[0]
 
+
 def validate_master_id(org_client, spec):
     """
     Don't mangle the wrong org by accident
@@ -248,6 +241,16 @@ def validate_master_id(org_client, spec):
                 "'master_account_id' set in the spec-file" % master_account_id)
         raise RuntimeError(errmsg)
     return
+
+def list_policies_in_ou (org_client, ou_id):
+    """
+    Query deployed AWS organanization.  Return a list (of type dict)
+    of policies attached to OrganizationalUnit referenced by 'ou_id'.
+    """
+    policies_in_ou = org_client.list_policies_for_target(
+            TargetId=ou_id, Filter='SERVICE_CONTROL_POLICY',)['Policies']
+    return sorted(map(lambda ou: ou['Name'], policies_in_ou))
+
 
 def search_spec(spec, search_key, recurse_key):
     """
