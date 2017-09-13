@@ -207,13 +207,18 @@ def manage_policy_attachments(org_client, log, deployed, org_spec, ou_spec, ou_i
         log.info("Detaching policy '%s' from OU '%s'" % (policy_name, ou_spec['Name']))
         org_client.detach_policy(PolicyId=lookup(deployed['policies'], 'Name', policy_name, 'Id'), TargetId=ou_id)
 
+
+def check_accounts_are_live(log, root_spec):
+    #TODO: implement recursive check
+    pass
+
+
 def main():
     log = get_logger(logging.INFO)
 
     #create the client
     org_client = boto3.client('organizations')
     root_id = get_root_org_id(org_client)
-    pretty_printer = pprint.PrettyPrinter(indent=4)
 
     #scan account to see what has been deployed
     deployed = dict(
@@ -225,11 +230,14 @@ def main():
     log.info("Validating Organization spec file")
     org_spec = validate_spec_file(log, '../config/org-spec.yaml', 'org_spec')
     log.info("Spec Valid...")
-    #TODO: do i need this and also should we check accounts exist?
+    #TODO: do i need this?? Open support ticket with AWS about how this works
     enable_policy_type_in_root(org_client, root_id)
     validate_master_id(org_client, org_spec)
     root_spec = lookup(org_spec['organizational_units'], 'Name', 'root')
+
     validate_accounts_unique_in_org(log, root_spec)
+    check_accounts_are_live(log, root_spec)
+
     managed = dict(
             accounts = search_spec(root_spec, 'Accounts', 'Child_OU'),
             ou = search_spec(root_spec, 'Name', 'Child_OU'),
@@ -249,7 +257,7 @@ def main():
     #########################################################
     manage_ou(org_client, log, deployed, org_spec, org_spec['organizational_units'], 'root')
 
-    ######################## CLEAN UP #######################
+##################### MANAGE ORPHAN ACCOUNTS #######################
     #########################################################
      # check for unmanaged resources
     for key in managed.keys():
