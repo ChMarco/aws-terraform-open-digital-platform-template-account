@@ -118,13 +118,11 @@ def get_deployed_ou(org_client, root_id):
     build_deployed_ou_table(org_client, 'root', root_id, deployed_ou)
     return deployed_ou
 
-def get_logger():
+def get_logger(log_level):
     """
     Setup basic logging.
     Return logging.Logger object.
     """
-    # log level
-    log_level = logging.INFO
     log_format = '%(name)s: %(levelname)-9s%(funcName)s():  %(message)s'
 
     logFormatter = logging.Formatter(log_format)

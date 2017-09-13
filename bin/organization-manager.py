@@ -57,6 +57,20 @@ def validate_accounts_unique_in_org(log, root_spec):
         print("Invalid org_spec... ")
         sys.exit(1)
 
+def place_unmanged_accounts(org_client, log, deployed, account_list, dest_parent):
+    """
+    Move any unmanaged accounts into the default OU.
+    """
+    for account in account_list:
+        account_id = lookup(deployed['accounts'], 'Name', account, 'Id')
+        dest_parent_id   = lookup(deployed['ou'], 'Name', dest_parent, 'Id')
+        source_parent_id = get_parent_id(org_client, account_id)
+        if dest_parent_id and dest_parent_id != source_parent_id:
+            log.info("Moving unmanged account '%s' to default OU '%s'" % (account, dest_parent))
+            org_client.move_account(AccountId=account_id, SourceParentId=source_parent_id,
+                                    DestinationParentId=dest_parent_id)
+
+
 def manage_policies(org_client, log, deployed, org_spec):
     """
     Manage Service Control Policies in the AWS Organization.  Make updates
@@ -194,7 +208,7 @@ def manage_policy_attachments(org_client, log, deployed, org_spec, ou_spec, ou_i
         org_client.detach_policy(PolicyId=lookup(deployed['policies'], 'Name', policy_name, 'Id'), TargetId=ou_id)
 
 def main():
-    log = get_logger()
+    log = get_logger(logging.INFO)
 
     #create the client
     org_client = boto3.client('organizations')
@@ -207,12 +221,10 @@ def main():
             accounts = get_deployed_accounts(log, org_client),
             ou = get_deployed_ou(org_client, root_id))
 
-    pretty_printer.pprint(deployed)
-
     #read in organisation strcture
-    print("Validating Organization spec file")
+    log.info("Validating Organization spec file")
     org_spec = validate_spec_file(log, '../config/org-spec.yaml', 'org_spec')
-    print("Spec Valid...")
+    log.info("Spec Valid...")
     #TODO: do i need this and also should we check accounts exist?
     enable_policy_type_in_root(org_client, root_id)
     validate_master_id(org_client, org_spec)
@@ -236,6 +248,17 @@ def main():
     ######################## OU CRUD ########################
     #########################################################
     manage_ou(org_client, log, deployed, org_spec, org_spec['organizational_units'], 'root')
+
+    ######################## CLEAN UP #######################
+    #########################################################
+     # check for unmanaged resources
+    for key in managed.keys():
+        unmanaged= [a['Name'] for a in deployed[key] if a['Name'] not in managed[key]]
+        if unmanaged:
+            log.warn("Unmanaged %s in Organization: %s" % (key,', '.join(unmanaged)))
+            if key ==  'accounts':
+                # append unmanaged accounts to default_ou
+                place_unmanged_accounts(org_client, log, deployed, unmanaged, org_spec['default_ou'])
 
 if __name__ == "__main__":
     main()
