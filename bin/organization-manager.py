@@ -13,7 +13,7 @@ def enable_policy_type_in_root(org_client, root_id):
     organization root.
     """
     p_type = org_client.list_roots()['Roots'][0]['PolicyTypes']
-    if(not p_type or (p_type['Type'][0] == 'SERVICE_CONTROL_POLICY' and p_type[0]['Status'] != 'ENABLED')):
+    if(not p_type or (p_type[0]['Type'] == 'SERVICE_CONTROL_POLICY' and p_type[0]['Status'] != 'ENABLED')):
         org_client.enable_policy_type(RootId=root_id, PolicyType='SERVICE_CONTROL_POLICY')
 
 def get_parent_id(org_client, account_id):
@@ -208,9 +208,17 @@ def manage_policy_attachments(org_client, log, deployed, org_spec, ou_spec, ou_i
         org_client.detach_policy(PolicyId=lookup(deployed['policies'], 'Name', policy_name, 'Id'), TargetId=ou_id)
 
 
-def check_accounts_are_live(log, root_spec):
-    #TODO: implement recursive check
-    pass
+def check_accounts_are_live(log, org_client, accounts):
+    #get a list of all the accounts in org
+    live_accounts = get_deployed_accounts(log, org_client)
+    for spec_account in accounts:
+        #check org in spec is in the list of live accounts
+        is_live = False
+        for live_account in live_accounts:
+            if(spec_account == live_account["Name"]):
+                is_live = True
+        if (not is_live):
+            log.warn("Account '%s' not Created. Please run create-account-structure.py first" % spec_account)
 
 
 def main():
@@ -235,12 +243,14 @@ def main():
     root_spec = lookup(org_spec['organizational_units'], 'Name', 'root')
 
     validate_accounts_unique_in_org(log, root_spec)
-    check_accounts_are_live(log, root_spec)
 
     managed = dict(
             accounts = search_spec(root_spec, 'Accounts', 'Child_OU'),
             ou = search_spec(root_spec, 'Name', 'Child_OU'),
             policies = [p['Name'] for p in org_spec['sc_policies']])
+
+    check_accounts_are_live(log, org_client, managed['accounts'])
+
     # ensure default_policy is considered 'managed'
     if org_spec['default_policy'] not in managed['policies']:
         managed['policies'].append(org_spec['default_policy'])
