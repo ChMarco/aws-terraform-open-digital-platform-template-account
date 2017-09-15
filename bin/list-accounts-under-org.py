@@ -3,7 +3,7 @@
 import json
 import pprint
 import boto3
-from utils import get_root_id
+from utils import get_root_account_id
 
 
 def list_accounts():
@@ -16,7 +16,7 @@ def list_accounts():
 
     # get Id of root account
     full_account_list = org_client.list_accounts()['Accounts']
-    root_account_ID = get_root_id(org_client)
+    root_account_ID = get_root_account_id(org_client)
 
     # create local hash of account names and IDs. Do not include root account
     for account in full_account_list:
