@@ -5,12 +5,14 @@ import pkg_resources
 import sys
 import yaml
 
+LOGGING_PATH = "../.artifacts/logs/"
+PATTERN_FILE = '../data/spec-validation-patterns.yaml'
 
 def load_validation_patterns(log):
     """
     Return dict of patterns for use when validating specification syntax
     """
-    PATTERN_FILE = '../data/spec-validation-patterns.yaml'
+
     log.debug("loading file: '%s'" % PATTERN_FILE)
     filename =  os.path.abspath(pkg_resources.resource_filename(__name__, PATTERN_FILE))
             # __name__, '../data/spec-validation-patterns.yaml'))
@@ -118,7 +120,7 @@ def get_deployed_ou(org_client, root_id):
     build_deployed_ou_table(org_client, 'root', root_id, deployed_ou)
     return deployed_ou
 
-def get_logger(log_level):
+def get_logger(log_level, file_name):
     """
     Setup basic logging.
     Return logging.Logger object.
@@ -128,8 +130,15 @@ def get_logger(log_level):
     logFormatter = logging.Formatter(log_format)
     rootLogger = logging.getLogger()
     rootLogger.setLevel(log_level)
+
+    #add console appened
     consoleHandler = logging.StreamHandler()
     consoleHandler.setFormatter(logFormatter)
+
+    fileHandler = logging.FileHandler("{0}/{1}.log".format(LOGGING_PATH, file_name))
+    fileHandler.setFormatter(logFormatter)
+    rootLogger.addHandler(fileHandler)
+
     rootLogger.addHandler(consoleHandler)
 
     return rootLogger

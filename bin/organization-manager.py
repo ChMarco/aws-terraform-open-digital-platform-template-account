@@ -222,7 +222,7 @@ def check_accounts_are_live(log, org_client, accounts):
 
 
 def main():
-    log = get_logger(logging.INFO)
+    log = get_logger(logging.INFO, os.path.basename(__file__).split('.')[0])
 
     #create the client
     org_client = boto3.client('organizations')

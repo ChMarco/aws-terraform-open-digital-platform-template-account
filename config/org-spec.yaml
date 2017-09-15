@@ -1,0 +1,89 @@
+# AWS Organization Specification
+
+# AWS account Id for the Organization master account.  This must be in quotes.
+master_account_id: '259100015265'
+
+# Default Organization Service Control Policy.
+default_policy: FullAWSAccess
+
+# Default Organizational Unit.
+default_ou: root
+
+# Organizational Unit Specification.
+#
+organizational_units:
+  # the root OU must be defined
+  - Name: root
+    Child_OU:
+      - Name: infrastructure
+        SC_Policies: 
+          - infrastructure_service_policy
+        Accounts:
+          - global-services
+          - service-catalogue
+          - management
+          - iam-master
+      - Name: logging
+        Accounts:
+          - logging
+        SC_Policies:
+          - logging_service_policy
+      - Name: audit
+        Accounts:
+          - audit
+        SC_Policies:
+          - aduit-only
+      - Name: iam-accounts
+        Accounts:
+          - iam-user
+          - federation
+        SC_Policies:
+          - aduit-only
+
+
+# Service Control Policy Specification.
+# TODO: add more stuff here and document how this works.
+sc_policies:
+  - Name: FullAWSAccess         # default SCPolicy managed by AWS
+  - Name: logging_service_policy
+    Ensure: present
+    Description: POC Accounts
+    Effect: Allow
+    Actions:
+      - iam:*
+      - s3:*
+      - lambda:*
+      - cloudformation:*
+      - cloudtrail:*
+      - sts:*
+      - sns:*
+      - cloudwatch:*
+  - Name: infrastructure_service_policy
+    Ensure: present
+    Description: Production Accounts
+    Effect: Allow
+    Actions:
+      - ec2:*
+      - cloudfront:*
+      - iam:*
+      - s3:*
+      - lambda:*
+      - cloudformation:*
+      - cloudtrail:*
+      - sts:*
+      - sns:*
+      - cloudwatch:*
+  - Name: aduit-only
+    Ensure: present
+    Description: Utility policy for configuring IAM user access.
+    Effect: Allow
+    Actions:
+      - iam:*
+      - cloudformation:*
+      - cloudtrail:*
+  - Name: no-services
+    Ensure: absent
+    Description: Deny access to all AWS services
+    Effect: Deny
+    Actions:
+      - '*'
