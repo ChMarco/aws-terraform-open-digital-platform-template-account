@@ -125,7 +125,9 @@ def get_logger(log_level, file_name):
     Setup basic logging.
     Return logging.Logger object.
     """
-    log_format = '%(name)s: %(levelname)-9s%(funcName)s():  %(message)s'
+    log_format = '%(name)s: %(levelname)-9s%(message)s'
+    if(log_level == logging.DEBUG):
+        log_format = '%(name)s: %(levelname)-9s%(funcName)s():  %(message)s'
 
     logFormatter = logging.Formatter(log_format)
     rootLogger = logging.getLogger()

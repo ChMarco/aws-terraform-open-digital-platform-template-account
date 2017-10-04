@@ -36,13 +36,6 @@
       "IamUserAccessToBilling": "ALLOW",
       "cloudformationTemplate": "iam-user.template"
     },
-    "security": {
-      "accountName": "Security Account",
-      "email": "sion.smith+security@gmail.com",
-      "iamRoleName": "OrganizationAccountAccessRole",
-      "IamUserAccessToBilling": "ALLOW",
-      "cloudformationTemplate": "security.template"
-    },
     "audit": {
       "accountName": "Audit Account",
       "email": "sion.smith+audit@gmail.com",

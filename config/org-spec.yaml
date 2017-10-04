@@ -1,15 +1,27 @@
 # AWS Organization Specification
 
 # AWS account Id for the Organization master account.  This must be in quotes.
-master_account_id: '259100015265'
+master_account_id: 'XXXXXXXXXXXX'
 
 # Default Organization Service Control Policy.
+# !!! This is managed by AWS and should not be modified or deleted.  This is attached to all Organizational Units. !!!
 default_policy: FullAWSAccess
 
 # Default Organizational Unit.
+# !!!  Any accounts in the Organization not explicitly assigned to an Organizational Unit are placed here. !!!
 default_ou: root
 
 # Organizational Unit Specification.
+# This maps the Organization's structure and assigns policies and accounts to organizational units.
+# Each Organizational Unit (OU) has 5 possible attributes:
+#   Name:         Type 'str'.   The name of the OU (required)
+#   Ensure:       Type 'str'.   One of 'present' (default) or 'absent'.
+#                 Setting to 'absent' will cause the OU to be deleted but
+#                 only if no accounts are still assigned to the OU.
+#   Accounts:     Type 'list'.  List of account names assigned to this OU.
+#   Policies:     Type 'list'.  List of Service Control Policies attached to
+#                 this OU.
+#   Child_OU:     Type 'list'.  List of child Organizational Units.
 #
 organizational_units:
   # the root OU must be defined
@@ -19,10 +31,10 @@ organizational_units:
         SC_Policies: 
           - infrastructure_service_policy
         Accounts:
-          - global-services
-          - service-catalogue
+          - global_services
+          - service_catalogue
           - management
-          - iam-master
+          - iam_master
       - Name: logging
         Accounts:
           - logging
@@ -32,32 +44,27 @@ organizational_units:
         Accounts:
           - audit
         SC_Policies:
-          - aduit-only
-      - Name: iam-accounts
+          - aduit_only_policy
+      - Name: iam_accounts
         Accounts:
-          - iam-user
+          - iam_user
           - federation
         SC_Policies:
-          - aduit-only
+          - iam_only_policy
 
 
-# Service Control Policy Specification.
-# TODO: add more stuff here and document how this works.
+# Service Control Policy Specification.  Defines custom Service Control
+# Policies which can then be attached to Organizational Units. Each
+# SCPolicy has 5 possible attributes:
+#   Name:         Type 'str'.  The name of the SCPolicy (required)
+#   Ensure:       Type 'str'.  One of 'present' (default) or 'absent'.
+#                 Setting to 'absent' will cause the SCPolicy to be deleted but
+#                 only if no longer attached to any Organizational Units.
+#   Description:  Type 'str'.  The policy SID.
+#   Effect:       Type 'str'.  Either 'Allow' or 'Deny'.
+#   Actions:      Type 'list'. List of AWS services controlled by the policy.
 sc_policies:
   - Name: FullAWSAccess         # default SCPolicy managed by AWS
-  - Name: logging_service_policy
-    Ensure: present
-    Description: POC Accounts
-    Effect: Allow
-    Actions:
-      - iam:*
-      - s3:*
-      - lambda:*
-      - cloudformation:*
-      - cloudtrail:*
-      - sts:*
-      - sns:*
-      - cloudwatch:*
   - Name: infrastructure_service_policy
     Ensure: present
     Description: Production Accounts
@@ -69,11 +76,48 @@ sc_policies:
       - s3:*
       - lambda:*
       - cloudformation:*
+      - sts:*
+      - sns:*
+      - cloudwatch:*
+      - route53:*
+      - vpc:*
+      - codecommit:*
+      - codebuild:*
+      - aws-portal:*
+      - codepipeline:*
+      - config:*
+      - directconnect:*
+      - ecs:*
+      - ecr:*
+  - Name: logging_service_policy
+    Ensure: present
+    Description: POC Accounts
+    Effect: Allow
+    Actions:
+      - s3:*
+      - lambda:*
+      - cloudformation:*
       - cloudtrail:*
       - sts:*
       - sns:*
       - cloudwatch:*
-  - Name: aduit-only
+      - ec2:*
+  - Name: aduit_only_policy
+    Ensure: present
+    Description: Utility policy for audit and real time scanning.
+    Effect: Allow
+    Actions:
+      - inspector:*
+      - config:*
+      - waf:*
+      - trustedadvisor:*
+      - s3:*
+      - ec2:*
+      - cloudhsm:*
+      - cloudtrail:*
+      - cloudformation:*
+      - cloudwatch:*
+  - Name: iam_only_policy
     Ensure: present
     Description: Utility policy for configuring IAM user access.
     Effect: Allow
@@ -81,7 +125,8 @@ sc_policies:
       - iam:*
       - cloudformation:*
       - cloudtrail:*
-  - Name: no-services
+      - ds:*
+  - Name: no_services
     Ensure: absent
     Description: Deny access to all AWS services
     Effect: Deny
