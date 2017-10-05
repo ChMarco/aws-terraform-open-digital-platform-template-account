@@ -1,9 +1,31 @@
 #!/usr/bin/env python
+
+"""Manage recources in an AWS Organization.
+
+Usage:
+  organization-manager report [-d] [--boto-log]
+  organization-manager organization (--spec-file FILE) [--exec] [-vd] [--boto-log]
+  organization-manager --version
+  organization-manager --help
+
+Modes of operation:
+  report         Display organization status report only.
+  orgnanizaion   Run AWS Org management tasks per specification.
+
+Options:
+  -h, --help                 Show this help message and exit.
+  --version                  Display version info and exit.
+  -s FILE, --spec-file FILE  AWS Org specification file in yaml format.
+  --exec                     Execute proposed changes to AWS Org.
+  -v, --verbose              Log to activity to STDOUT at log level INFO.
+  -d, --debug                Increase log level to 'DEBUG'. Implies '--verbose'.
+  --boto-log                 Include botocore and boto3 logs in log stream.
+
+"""
+
 import json
-
-import pprint
-
 import boto3
+from docopt import docopt
 from utils import *
 
 
@@ -222,6 +244,7 @@ def check_accounts_are_live(log, org_client, accounts):
 
 
 def main():
+    args = docopt(__doc__)
     log = get_logger(logging.INFO, os.path.basename(__file__).split('.')[0])
 
     #create the client

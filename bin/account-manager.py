@@ -3,14 +3,14 @@
 """Manage accounts in an AWS Organization.
 
 Usage:
-  awsaccounts report [-d] [--boto-log]
-  awsaccounts create (--spec-file FILE) [--exec] [-vd] [--boto-log]
-  awsaccounts (-h | --help)
-  awsaccounts --version
+  account-manager.py report [-d] [--boto-log]
+  account-manager.py create (--spec-file FILE) [--exec] [-vd] [--boto-log]
+  account-manager.py (-h | --help)
+  account-manager.py --version
 
 Modes of operation:
   report         Display organization status report only.
-  create         Create new accounts in AWS Org per specifation.
+  create         Create new accounts in AWS Org per specification.
 
 Options:
   -h, --help                 Show this help message and exit.
