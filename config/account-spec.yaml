@@ -1,0 +1,69 @@
+# AWS Account Specification
+
+# AWS account Id for the Organization master account.  This must be in quotes.
+master_account_id: 'XXXXXXXXXXXX'
+
+# Email domain to use for account creation if the accounts['Email'] field
+# is not explicitly specified.
+default_domain: adidas-group.com
+
+
+# Teams Specifation.  This provides a labeling system for tracking people inside Adidas
+# who are responsible for managed accounts and users.
+#
+teams:
+  - Name: infrastructure
+    BusinessContacts:
+      - sascha.schaefer@adidas-Group.com
+    TechnicalContacts:
+      - sascha.schaefer@adidas-Group.com
+  - Name: logging
+    BusinessContacts:
+      - mohan@adidas-group.com
+    TechnicalContacts:
+      - elena@adidas-group.com
+  - Name: audit
+    BusinessContacts:
+      - alex.silva@adidas-group.com
+    TechnicalContacts:
+      - alex.silva@adidas-group.com
+  - Name: iam_accounts
+    BusinessContacts:
+      - wolf-peter.fritzsche@adidas-Group.com
+    TechnicalContacts:
+      - wolf-peter.fritzsche@adidas-Group.com
+
+
+# Accounts Specification.  List of managed AWS accounts in the Organization.
+# Each account has 3 attributes all of type 'str':
+#   Name:   The name of the account - required.
+#   Email:  The email address used when creating a new account.  This
+#           address must be unique in all AWS (for crying out load).  If
+#           omitted, we combine the account name and the default_email_domain.
+#   Team:   A label for tracking dudes within your organization associated
+#           with a this account.
+#
+accounts:
+  - Name: Master
+    Team: infrastructure
+  - Name: global_services
+    Email: global_services@adidas-group.com
+    Team: infrastructure
+  - Name: service_catalogue
+    Email: service_catalogue@adidas-group.com
+    Team: infrastructure
+  - Name: management
+    Email: management@adidas-group.com
+    Team: infrastructure
+  - Name: iam_master
+    Email: iam_master@adidas-group.com
+    Team: infrastructure
+  - Name: logging
+    Email: logging@adidas-group.com
+    Team: logging
+  - Name: iam_user
+    Email: iam_user@adidas-group.com
+    Team: iam_accounts
+  - Name: federation
+    Email: federation@adidas-group.com
+    Team: iam_accounts
