@@ -35,37 +35,6 @@ account_spec:
     spec_pattern: account
 
 
-auth_spec:
-  master_account_id:
-    required: True
-    atype: str
-  auth_account_id:
-    required: True
-    atype: str
-  org_access_role:
-    required: True
-    atype: str
-  default_path:
-    required: True
-    atype: str
-  users:
-    required: False
-    atype: list
-    spec_pattern: user
-  groups:
-    required: False
-    atype: list
-    spec_pattern: group
-  delegations:
-    required: False
-    atype: list
-    spec_pattern: delegation
-  custom_policies:
-    required: False
-    atype: list
-    spec_pattern: custom_policy
-
-
 organizational_unit:
   Name:
     required: True
@@ -131,6 +100,9 @@ account:
     required: True
     atype: str
   Email:
+    required: False
+    atype: str
+  Template:
     required: False
     atype: str
   Team:

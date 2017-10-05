@@ -49,21 +49,28 @@ accounts:
   - Name: global_services
     Email: global_services@adidas-group.com
     Team: infrastructure
+    Template: https://github.com/contino/aws-terraform-open-digital-platform-template-account/tree/terraform
   - Name: service_catalogue
     Email: service_catalogue@adidas-group.com
     Team: infrastructure
+    Template:
   - Name: management
     Email: management@adidas-group.com
     Team: infrastructure
+    Template: https://github.com/contino/aws-terraform-open-digital-platform-template-account/tree/terraform/terraform/infrastructure/management-infrastructure
   - Name: iam_master
     Email: iam_master@adidas-group.com
     Team: infrastructure
+    Template:
   - Name: logging
     Email: logging@adidas-group.com
     Team: logging
+    Template:
   - Name: iam_user
     Email: iam_user@adidas-group.com
     Team: iam_accounts
+    Template:
   - Name: federation
     Email: federation@adidas-group.com
     Team: iam_accounts
+    Template:
