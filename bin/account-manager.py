@@ -23,11 +23,9 @@ Options:
 
 """
 
-import logging
-import os
 import boto3
 from docopt import docopt
-from utils import get_logger, get_root_org_id, get_deployed_accounts, lookup, validate_spec_file, validate_master_id
+from utils import *
 
 
 def display_provisioned_accounts(log, deployed_accounts):

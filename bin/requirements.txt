@@ -1,0 +1,8 @@
+boto3
+json
+docopt
+logging
+os
+pkg_resources
+sys
+yaml
