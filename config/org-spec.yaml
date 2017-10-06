@@ -51,6 +51,9 @@ organizational_units:
           - federation
         SC_Policies:
           - iam_only_policy
+      - Name: application_accounts
+        Accounts:
+        SC_Policies:
 
 
 # Service Control Policy Specification.  Defines custom Service Control
@@ -123,6 +126,14 @@ sc_policies:
     Effect: Allow
     Actions:
       - iam:*
+      - cloudformation:*
+      - cloudtrail:*
+      - ds:*
+  - Name: application_account_policy
+    Ensure: present
+    Description: Utility policy for configuring IAM user access.
+    Effect: Allow
+    Actions:
       - cloudformation:*
       - cloudtrail:*
       - ds:*
