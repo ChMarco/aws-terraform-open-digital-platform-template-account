@@ -120,14 +120,28 @@ def get_deployed_ou(org_client, root_id):
     build_deployed_ou_table(org_client, 'root', root_id, deployed_ou)
     return deployed_ou
 
-def get_logger(log_level, file_name):
+def get_logger(args, file_name):
     """
     Setup basic logging.
     Return logging.Logger object.
     """
+    # log level
+    log_level = logging.CRITICAL
+    if args['--verbose'] or args['report'] or args['--boto-log']:
+        log_level = logging.INFO
+    if args['--debug']:
+        log_level = logging.DEBUG
+
     log_format = '%(name)s: %(levelname)-9s%(message)s'
-    if(log_level == logging.DEBUG):
+    if args['report']:
+        log_format = '%(message)s'
+    if args['--debug']:
         log_format = '%(name)s: %(levelname)-9s%(funcName)s():  %(message)s'
+    if (not args['--exec'] and not args['report']):
+        log_format = '[dryrun] %s' % log_format
+    if not args['--boto-log']:
+        logging.getLogger('botocore').propagate = False
+        logging.getLogger('boto3').propagate = False
 
     logFormatter = logging.Formatter(log_format)
     rootLogger = logging.getLogger()

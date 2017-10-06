@@ -79,6 +79,51 @@ def validate_accounts_unique_in_org(log, root_spec):
         print("Invalid org_spec... ")
         sys.exit(1)
 
+def display_provisioned_ou(org_client, log, deployed_ou, parent_name, indent=0):
+    """
+    Recursive function to display the deployed AWS Organization structure.
+    """
+    # query aws for child orgs
+    parent_id = lookup(deployed_ou, 'Name', parent_name, 'Id')
+    child_ou_list = lookup(deployed_ou, 'Name', parent_name, 'Child_OU')
+    child_accounts = lookup(deployed_ou, 'Name', parent_name, 'Accounts')
+    # display parent ou name
+    tab = '  '
+    log.info(tab*indent + parent_name + ':')
+    # look for policies
+    policy_names = list_policies_in_ou(org_client, parent_id)
+    if len(policy_names) > 0:
+        log.info(tab*indent + tab + 'Policies: ' + ', '.join(policy_names))
+    # look for accounts
+    account_list = sorted(child_accounts)
+    if len(account_list) > 0:
+        log.info(tab*indent + tab + 'Accounts: ' + ', '.join(account_list))
+    # look for child OUs
+    if child_ou_list:
+        log.info(tab*indent + tab + 'Child_OU:')
+        indent+=2
+        for ou_name in child_ou_list:
+            # recurse
+            display_provisioned_ou(org_client, log, deployed_ou, ou_name, indent)
+
+def display_provisioned_policies(org_client, log, deployed):
+    """
+    Print report of currently deployed Service Control Policies in
+    AWS Organization.
+    """
+    header = "Provisioned Service Control Policies:"
+    overbar = '_' * len(header)
+    log.info("\n\n%s\n%s" % (overbar, header))
+    for policy in deployed['policies']:
+        log.info("\nName:\t\t%s" % policy['Name'])
+        log.info("Description:\t%s" % policy['Description'])
+        log.info("Id:\t%s" % policy['Id'])
+        log.info("Content:")
+        log.info(json.dumps(json.loads(org_client.describe_policy(
+                PolicyId=policy['Id'])['Policy']['Content']),
+                indent=2,
+                separators=(',', ': ')))
+
 def place_unmanged_accounts(org_client, log, deployed, account_list, dest_parent):
     """
     Move any unmanaged accounts into the default OU.
@@ -244,8 +289,8 @@ def check_accounts_are_live(log, org_client, accounts):
 
 
 def main():
-    args = docopt(__doc__)
-    log = get_logger(logging.INFO, os.path.basename(__file__).split('.')[0])
+    args = docopt(__doc__, version='1.0')
+    log = get_logger(args, os.path.basename(__file__).split('.')[0])
 
     #create the client
     org_client = boto3.client('organizations')
@@ -257,48 +302,59 @@ def main():
             accounts = get_deployed_accounts(log, org_client),
             ou = get_deployed_ou(org_client, root_id))
 
-    #read in organisation strcture
-    log.info("Validating Organization spec file")
-    org_spec = validate_spec_file(log, '../config/org-spec.yaml', 'org_spec')
-    log.info("Spec Valid...")
-    enable_policy_type_in_root(org_client, root_id)
-    validate_master_id(org_client, org_spec)
-    root_spec = lookup(org_spec['organizational_units'], 'Name', 'root')
-
-    validate_accounts_unique_in_org(log, root_spec)
-
-    managed = dict(
-            accounts = search_spec(root_spec, 'Accounts', 'Child_OU'),
-            ou = search_spec(root_spec, 'Name', 'Child_OU'),
-            policies = [p['Name'] for p in org_spec['sc_policies']])
-
-    check_accounts_are_live(log, org_client, managed['accounts'])
-
-    # ensure default_policy is considered 'managed'
-    if org_spec['default_policy'] not in managed['policies']:
-        managed['policies'].append(org_spec['default_policy'])
-
-    ###################### POLICY CRUD ######################
+    ################# SPEC FILE CHECKS ######################
     #########################################################
-    # all information is present now preform CRUD operations on policies
-    manage_policies(org_client, log, deployed, org_spec)
-    # rescan deployed policies
-    deployed['policies'] = get_deployed_policies(org_client)
+    if args['--spec-file']:
+        #read in organisation strcture
+        log.info("Validating Organization spec file")
+        org_spec = validate_spec_file(log, '../config/org-spec.yaml', 'org_spec')
+        log.info("Spec Valid...")
+        enable_policy_type_in_root(org_client, root_id)
+        validate_master_id(org_client, org_spec)
+        root_spec = lookup(org_spec['organizational_units'], 'Name', 'root')
 
-    ######################## OU CRUD ########################
-    #########################################################
-    manage_ou(org_client, log, deployed, org_spec, org_spec['organizational_units'], 'root')
+        validate_accounts_unique_in_org(log, root_spec)
 
-    ############## MANAGE ORPHAN ACCOUNTS ###################
+        managed = dict(
+                accounts = search_spec(root_spec, 'Accounts', 'Child_OU'),
+                ou = search_spec(root_spec, 'Name', 'Child_OU'),
+                policies = [p['Name'] for p in org_spec['sc_policies']])
+
+        check_accounts_are_live(log, org_client, managed['accounts'])
+        # ensure default_policy is considered 'managed'
+        if org_spec['default_policy'] not in managed['policies']:
+            managed['policies'].append(org_spec['default_policy'])
+
+    ###################### REPORT FUNCTION###################
     #########################################################
-     # check for unmanaged resources
-    for key in managed.keys():
-        unmanaged= [a['Name'] for a in deployed[key] if a['Name'] not in managed[key]]
-        if unmanaged:
-            log.warn("Unmanaged %s in Organization: %s" % (key,', '.join(unmanaged)))
-            if key ==  'accounts':
-                # append unmanaged accounts to default_ou
-                place_unmanged_accounts(org_client, log, deployed, unmanaged, org_spec['default_ou'])
+    if args['report']:
+        header = 'Provisioned Organizational Units in Org:'
+        overbar = '_' * len(header)
+        log.info("\n%s\n%s" % (overbar, header))
+        display_provisioned_ou(org_client, log, deployed['ou'], 'root')
+        display_provisioned_policies(org_client, log, deployed)
+
+    ###################### ORG CRUD ######################
+    ######################################################
+    if args['organization']:
+
+        # all information is present now preform CRUD operations on policies
+        manage_policies(org_client, log, deployed, org_spec)
+        # rescan deployed policies
+        deployed['policies'] = get_deployed_policies(org_client)
+
+        # OU CRUD
+        manage_ou(org_client, log, deployed, org_spec, org_spec['organizational_units'], 'root')
+
+        #MANAGE ORPHAN ACCOUNTS
+        # check for unmanaged resources
+        for key in managed.keys():
+            unmanaged= [a['Name'] for a in deployed[key] if a['Name'] not in managed[key]]
+            if unmanaged:
+                log.warn("Unmanaged %s in Organization: %s" % (key,', '.join(unmanaged)))
+                if key ==  'accounts':
+                    # append unmanaged accounts to default_ou
+                    place_unmanged_accounts(org_client, log, deployed, unmanaged, org_spec['default_ou'])
 
 if __name__ == "__main__":
     main()
