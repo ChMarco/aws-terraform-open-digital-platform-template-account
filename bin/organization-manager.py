@@ -15,7 +15,7 @@ Modes of operation:
 Options:
   -h, --help                 Show this help message and exit.
   --version                  Display version info and exit.
-  -s FILE, --spec-file FILE  AWS Org specification file in yaml format.
+  -s FILE, --spec-file FILE  AWS Org specification file in yaml format. (../config/org-spec.yaml)
   --exec                     Execute proposed changes to AWS Org.
   -v, --verbose              Log to activity to STDOUT at log level INFO.
   -d, --debug                Increase log level to 'DEBUG'. Implies '--verbose'.
@@ -138,7 +138,7 @@ def place_unmanged_accounts(org_client, log, deployed, account_list, dest_parent
                                     DestinationParentId=dest_parent_id)
 
 
-def manage_policies(org_client, log, deployed, org_spec):
+def manage_policies(org_client, args, log, deployed, org_spec):
     """
     Manage Service Control Policies in the AWS Organization.  Make updates
     according to the sc_policies specification.  Do not touch
@@ -159,7 +159,7 @@ def manage_policies(org_client, log, deployed, org_spec):
                 if org_client.list_targets_for_policy( PolicyId=policy['Id'])['Targets']:
                     log.error("Cannot delete policy '%s'. Still attached to OU" %
                             policy_name)
-                else:
+                elif args['--exec']:
                     org_client.delete_policy(PolicyId=policy['Id'])
             continue
         # create or update sc_policy
@@ -169,11 +169,8 @@ def manage_policies(org_client, log, deployed, org_spec):
         # create new policy
         if not policy:
             log.info("Creating policy '%s'" % policy_name)
-            org_client.create_policy(
-                    Content=policy_doc,
-                    Description=p_spec['Description'],
-                    Name=p_spec['Name'],
-                    Type='SERVICE_CONTROL_POLICY')
+            if args['--exec']:
+                org_client.create_policy(Content=policy_doc, Description=p_spec['Description'], Name=p_spec['Name'], Type='SERVICE_CONTROL_POLICY')
         # check for policy updates
         else:
             deployed_policy_doc = json.dumps(json.loads(org_client.describe_policy(
@@ -182,10 +179,8 @@ def manage_policies(org_client, log, deployed, org_spec):
             if (p_spec['Description'] != policy['Description']
                 or policy_doc != deployed_policy_doc):
                 log.info("Updating policy '%s'" % policy_name)
-                org_client.update_policy(
-                        PolicyId=policy['Id'],
-                        Content=policy_doc,
-                        Description=p_spec['Description'],)
+                if args['--exec']:
+                    org_client.update_policy(PolicyId=policy['Id'], Content=policy_doc, Description=p_spec['Description'])
 
 def manage_ou(org_client, log, deployed, org_spec, ou_spec_list, parent_name):
     """
@@ -307,7 +302,7 @@ def main():
     if args['--spec-file']:
         #read in organisation strcture
         log.info("Validating Organization spec file")
-        org_spec = validate_spec_file(log, '../config/org-spec.yaml', 'org_spec')
+        org_spec = validate_spec_file(log, args['--spec-file'], 'org_spec')
         log.info("Spec Valid...")
         enable_policy_type_in_root(org_client, root_id)
         validate_master_id(org_client, org_spec)
@@ -337,9 +332,8 @@ def main():
     ###################### ORG CRUD ######################
     ######################################################
     if args['organization']:
-
         # all information is present now preform CRUD operations on policies
-        manage_policies(org_client, log, deployed, org_spec)
+        manage_policies(org_client, args, log, deployed, org_spec)
         # rescan deployed policies
         deployed['policies'] = get_deployed_policies(org_client)
 
