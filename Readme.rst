@@ -1,6 +1,8 @@
-# AWS Organization Open Digital Platform
+========
+AWS Organizations Structure :: Open Digital Platform
+========
 
-## Overview
+**Overview**
 todo, document how this all works.
 
 **Usage**::
