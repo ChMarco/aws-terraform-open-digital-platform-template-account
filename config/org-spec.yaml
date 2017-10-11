@@ -1,7 +1,7 @@
 # AWS Organization Specification
 
 # AWS account Id for the Organization master account.  This must be in quotes.
-master_account_id: 'XXXXXXXXXXXX'
+master_account_id: '599791326092'
 
 # Default Organization Service Control Policy.
 # !!! This is managed by AWS and should not be modified or deleted.  This is attached to all Organizational Units. !!!

@@ -29,7 +29,7 @@ from validate_email import validate_email
 
 OUTPUT_FILENAME = "output.yaml"
 SPEC_TEMPLATE_FILE =  jinja2.Template("""
-master_account_id: 'XXXXXXXXXXXX'
+master_account_id: '599791326092'
 
 default_domain: adidas-group.com
 
