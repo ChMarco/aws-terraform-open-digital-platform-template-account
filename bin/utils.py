@@ -20,14 +20,22 @@ def load_validation_patterns(log):
     with open(filename) as f:
         return yaml.load(f.read())
 
+def load_spec_file(log, file_name):
+    '''
+    Load spec file.
+    '''
+    log.debug("loading file '%s'" % file_name)
+    with open(file_name) as f:
+        return yaml.load(f.read())
+
 def validate_spec_file(log, spec_file, pattern_name):
     '''
     Validate spec-file is properly formed.
     '''
     log.debug("loading spec file '%s'" % spec_file)
     validation_patterns = load_validation_patterns(log)
-    with open(spec_file) as f:
-        spec = yaml.load(f.read())
+    #load spec file
+    spec = load_spec_file(log, spec_file)
     log.debug("calling validate_spec() for pattern '%s'" % pattern_name)
     if validate_spec(log, validation_patterns, pattern_name, spec):
         return spec
@@ -126,9 +134,9 @@ def get_logger(args, file_name):
     Return logging.Logger object.
     """
     # log level
-    log_level = logging.CRITICAL
-    if args['--verbose'] or args['report'] or args['--boto-log']:
-        log_level = logging.INFO
+    log_level = logging.INFO
+    if args['--verbose'] or args['report'] or ('--boto-log' in args and args['--boto-log']):
+        log_level = logging.CRITICAL
     if args['--debug']:
         log_level = logging.DEBUG
 
@@ -137,9 +145,9 @@ def get_logger(args, file_name):
         log_format = '%(message)s'
     if args['--debug']:
         log_format = '%(name)s: %(levelname)-9s%(funcName)s():  %(message)s'
-    if (not args['--exec'] and not args['report']):
+    if (('--exec' in args and not args['--exec']) and not args['report']):
         log_format = '[dryrun] %s' % log_format
-    if not args['--boto-log']:
+    if ('--boto-log' in args and not args['--boto-log']):
         logging.getLogger('botocore').propagate = False
         logging.getLogger('boto3').propagate = False
 
