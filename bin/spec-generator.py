@@ -4,8 +4,8 @@
 """Account spec file generator.
 
 Usage:
-  spec-generator generate <account_name> <account_email> <business_contact_email> <tech_contact_email> [options]
-  spec-generator report <account_name> <account_email> <business_contact_email> <tech_contact_email> [options]
+  spec-generator generate [options] <account_name> <account_email> <business_contact_email> <tech_contact_email>
+  spec-generator report [options] <account_name> <account_email> <business_contact_email> <tech_contact_email>
   spec-generator (-h | --help)
   spec-generator --version
 

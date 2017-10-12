@@ -12,6 +12,8 @@ The objective of these scripts is to template the creation of Adidas AWS global 
 - **organization-manager.py** Manage recources in an AWS Organization.
 - **spec-generator.py** Generates new account spec files based on commandline inputs. 
 
+Run each of these with the '--help' option for usage documentation or see below.
+
 How it works
 ------------
 **Before Running...**
@@ -32,16 +34,13 @@ Usage::
 
 ###### Running manually with Python (2.7)
 
-  # Run each command with -h option for full usage info.
+  ``account-manger.py report``
+  ``account-manger.py create -v -s account-spec.yaml [--exec]``
+  
+  ``organization-manager.py report``
+  ``organization-manager.py organization -v -s org-spec.yaml [--exec]``
 
-  organization-manager.py report
-  organization-manager.py organization -v -s org-spec.yaml [--exec]
-
-  spec-generator.py report
-  spec-generator.py generate 
-
-  account-manger.py report
-  account-manger.py create -v -s account-spec.yaml [--exec]
-
+  ``spec-generator.py report``
+  ``spec-generator.py generate -v new_application_a abc@adidas-group.com contact@adidas-group.com tech_support@adidas-group.com`` 
 
 
