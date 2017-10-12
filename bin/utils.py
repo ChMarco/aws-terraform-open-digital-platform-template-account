@@ -5,7 +5,6 @@ import pkg_resources
 import sys
 import yaml
 
-LOGGING_PATH = "../.artifacts/logs/"
 PATTERN_FILE = '../data/spec-validation-patterns.yaml'
 
 def load_validation_patterns(log):
@@ -134,9 +133,9 @@ def get_logger(args, file_name):
     Return logging.Logger object.
     """
     # log level
-    log_level = logging.INFO
+    log_level = logging.CRITICAL
     if args['--verbose'] or args['report'] or ('--boto-log' in args and args['--boto-log']):
-        log_level = logging.CRITICAL
+        log_level = logging.INFO
     if args['--debug']:
         log_level = logging.DEBUG
 
@@ -158,10 +157,6 @@ def get_logger(args, file_name):
     #add console appened
     consoleHandler = logging.StreamHandler()
     consoleHandler.setFormatter(logFormatter)
-
-    fileHandler = logging.FileHandler("{0}/{1}.log".format(LOGGING_PATH, file_name))
-    fileHandler.setFormatter(logFormatter)
-    rootLogger.addHandler(fileHandler)
 
     rootLogger.addHandler(consoleHandler)
 
